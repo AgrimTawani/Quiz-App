@@ -25,9 +25,17 @@ io.on("connection", (socket) => {
         }
       }
   
-      // Optionally, you can broadcast the room join
       socket.emit("joined_room", `Joined room ${subjectId}`);
     });
+
+
+
+
+    socket.on("game_start",(data) => {
+      console.log(data);
+    });
+
+
 });
 
 server.listen(3000, () => {

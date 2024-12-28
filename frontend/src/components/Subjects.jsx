@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useNavigate } from 'react-router-dom';
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { io } from 'socket.io-client';
 
 const Subjects = () => {
   const navigate = useNavigate();

@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import useSocket from '../hooks/useSocket';
 import { io } from 'socket.io-client';
 
 const WaitingScreen = () => {
@@ -10,6 +11,8 @@ const WaitingScreen = () => {
   const location = useLocation();
   const { room: initialRoom, username } = location.state || {}; 
   const [room, setRoom] = useState(initialRoom);
+  const socket = useSocket(subject); 
+
 
 
   // For loading dots animation
@@ -26,29 +29,15 @@ const WaitingScreen = () => {
   };
 
   useEffect(() => {
-    const subjectId = sessionStorage.getItem('subjectId');
-    
-    if (subjectId) {
-      const socket = io("http://localhost:3000");
-      
-      socket.on("connect", () => {
-        console.log("Connected in waiting page");
-        socket.emit("select_subject", subjectId);
-      });
-
-      socket.on("joined_room", (msg) => console.log(msg));
-
-      socket.on("room_full", (isSameRoom) => {
+    if (socket) {
+      socket.on('room_full', (isSameRoom) => {
         if (isSameRoom) {
-          console.log("The sockets are in the same room!");
-          navigate(`/game/${subjectId}`)
-        }});
-
-      return () => {
-        socket.disconnect();
-      };
+          console.log('The sockets are in the same room!');
+          navigate(`/game/${subject}`);
+        }
+      });
     }
-  }, [navigate]);
+  }, [socket, subject, navigate]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">

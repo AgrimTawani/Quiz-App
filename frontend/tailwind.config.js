@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       backgroundImage: {
-        'quiz': "url('./src/assets/bg.jpg')", 
+        'quiz': "url('/src/assets/bg.jpg')", 
       },
     },
   },

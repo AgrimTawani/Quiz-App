@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Modal, Subjects, WaitingScreen, GamePage } from './components';
+import { Modal, Subjects, WaitingScreen, GamePage, Result } from './components';
 
 const App = () => {
 
@@ -15,6 +15,7 @@ const App = () => {
         <Route path="/subjects" element={<Subjects />} />
         <Route path="/waiting/:subject" element={<WaitingScreen />} />
         <Route path="/game/:room" element={<GamePage />} />
+        <Route path="/result/:room" element={<Result />} />
       </Routes>
     </Router>
   );

@@ -10,7 +10,9 @@ const io = new Server(server, {
   },
 });
 
-// Function to get questions from JSON file
+// Store user scores in a room (you can store it in memory for simplicity)
+const roomScores = {};
+
 const getQuestions = () => {
   const rawData = fs.readFileSync("questions.json"); // Assuming the file is named 'questions.json'
   return JSON.parse(rawData); // Parse the JSON data from the file
@@ -36,23 +38,62 @@ io.on("connection", (socket) => {
   // Handle client requesting questions dynamically
   socket.on("request_game_questions", (data) => {
     try {
-      // Parse the incoming object and extract the room value
       const { room } = data;
       console.log("Request for questions received from room:", room);
 
-      // Get all questions from the JSON file
       const allQuestions = getQuestions();
-
-      // Fetch questions for the specified room
       const subjectQuestions = allQuestions[room] || [];
 
-      // Send questions back to the requesting client
       socket.emit("game_questions", subjectQuestions);
     } catch (error) {
       console.error("Error processing game questions request:", error);
       socket.emit("error", { message: "Unable to fetch questions. Please try again." });
     }
   });
+
+  // Handle score submission
+  socket.on("submit_score", (data) => {
+    const { room, score } = data;
+    console.log(`Score received for room ${room}:`, score);
+  
+    // Store the score for this user in the room
+    if (!roomScores[room]) {
+      roomScores[room] = []; // Initialize array for the room if not already
+    }
+  
+    // Add the user's score to the list
+    roomScores[room].push({ socketId: socket.id, score });
+  
+    // Check if all players have submitted their scores
+    const roomPlayers = io.sockets.adapter.rooms.get(room)?.size || 0;
+    if (roomScores[room].length === roomPlayers) {
+      // Log scores of both users and determine the higher score
+      const [player1, player2] = roomScores[room];
+      console.log(`Player 1 (ID: ${player1.socketId}) Score: ${player1.score}`);
+      console.log(`Player 2 (ID: ${player2.socketId}) Score: ${player2.score}`);
+  
+      let resultMessage;
+      if (player1.score > player2.score) {
+        resultMessage = `Player 1 wins with a score of ${player1.score}`;
+        console.log(resultMessage);
+      } else if (player2.score > player1.score) {
+        resultMessage = `Player 2 wins with a score of ${player2.score}`;
+        console.log(resultMessage);
+      } else {
+        resultMessage = "It's a tie!";
+      }
+  
+      // Emit the result to both players
+      // Emit the result to both players in the room
+    io.to(room).emit("result", { resultMessage, room });
+  
+      // Clear the room scores after logging the results
+      roomScores[room] = [];
+    }
+  });
+  
+
+
 });
 
 server.listen(3000, () => {

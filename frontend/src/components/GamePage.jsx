@@ -1,17 +1,24 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import useSocket from "../hooks/useSocket";
 import SideBar from "./SideBar";
 
 const GamePage = () => {
+  const navigate = useNavigate()
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState("");
+  const [score, setScore] = useState(0); // Track the user's score
   const { room } = useParams();
   const socket = useSocket(room);
 
   const handleOptionChange = (e) => {
     setSelectedOption(e.target.value);
+
+    // Check if the selected answer is correct
+    if (e.target.value === questions[currentQuestionIndex]?.answer) {
+      setScore((prevScore) => prevScore + 1);
+    }
   };
 
   const handleQuestionClick = (index) => {
@@ -19,10 +26,17 @@ const GamePage = () => {
     setSelectedOption("");
   };
 
+  const handleSubmit = () => {
+    if (socket) {
+      socket.emit("submit_score", { room, score });
+      alert("Your score has been submitted!");
+    }
+  };
+
   useEffect(() => {
     if (socket) {
       // Request questions when connected
-      socket.emit("request_game_questions",{ room: room });
+      socket.emit("request_game_questions", { room: room });
 
       // Listen for the questions event
       const handleGameQuestions = (data) => {
@@ -30,6 +44,14 @@ const GamePage = () => {
       };
 
       socket.on("game_questions", handleGameQuestions);
+
+      // Listen for the result event and navigate to the result page
+      const handleResult = (data) => {
+        const { resultMessage, room } = data;
+        navigate(`/result/${room}`, { state: { resultMessage } });
+      };
+
+      socket.on("result", handleResult);
 
       return () => {
         socket.off("game_questions", handleGameQuestions);
@@ -95,13 +117,22 @@ const GamePage = () => {
           <p className="text-gray-700 text-xl">
             {currentQuestionIndex + 1}/{questions.length}
           </p>
-          <button
-            className="text-blue-500 text-xl font-semibold"
-            disabled={currentQuestionIndex === questions.length - 1}
-            onClick={() => setCurrentQuestionIndex((prev) => Math.min(questions.length - 1, prev + 1))}
-          >
-            &gt;
-          </button>
+          {currentQuestionIndex === questions.length - 1 ? (
+            <button
+              className="bg-blue-500 text-white text-xl font-semibold py-2 px-4 rounded"
+              onClick={handleSubmit}
+            >
+              Submit
+            </button>
+          ) : (
+            <button
+              className="text-blue-500 text-xl font-semibold"
+              disabled={currentQuestionIndex === questions.length - 1}
+              onClick={() => setCurrentQuestionIndex((prev) => Math.min(questions.length - 1, prev + 1))}
+            >
+              &gt;
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -74,10 +74,10 @@ io.on("connection", (socket) => {
   
       let resultMessage;
       if (player1.score > player2.score) {
-        resultMessage = `Player 1 wins with a score of ${player1.score}`;
+        resultMessage = `${player1.socketId}`;
         console.log(resultMessage);
       } else if (player2.score > player1.score) {
-        resultMessage = `Player 2 wins with a score of ${player2.score}`;
+        resultMessage = `${player2.socketId}`;
         console.log(resultMessage);
       } else {
         resultMessage = "It's a tie!";

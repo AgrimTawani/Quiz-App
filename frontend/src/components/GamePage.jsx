@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+/* eslint-disable no-unused-vars */
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import useSocket from "../hooks/useSocket";
 import SideBar from "./SideBar";
@@ -48,7 +49,12 @@ const GamePage = () => {
       // Listen for the result event and navigate to the result page
       const handleResult = (data) => {
         const { resultMessage, room } = data;
-        navigate(`/result/${room}`, { state: { resultMessage } });
+        if (resultMessage === socket.id){
+          navigate(`/result/win`);
+        }else{
+          navigate(`/result/lost`)
+        }
+        
       };
 
       socket.on("result", handleResult);
